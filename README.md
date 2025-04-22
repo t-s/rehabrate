@@ -1,35 +1,67 @@
-# Astro Starter Kit: Minimal
+# RehabRate - Addiction Treatment Center Reviews
 
-```sh
-npm create astro@latest -- --template minimal
+RehabRate is a platform that allows users to find, review, and rate addiction treatment centers. Our mission is to bring transparency and accountability to addiction treatment by providing verified reviews and expert ratings.
+
+## Features
+
+- Search for treatment centers based on location, specialties, insurance acceptance, and more
+- Read verified reviews from real people who have experienced treatment
+- View expert ratings based on evidence-based criteria
+- Share your own treatment experiences to help others
+- Connect directly with treatment centers
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js (v18 or higher)
+- npm (v9 or higher)
+
+### Installation
+
+1. Clone this repository
+```bash
+git clone https://github.com/yourname/rehabrate.git
+cd rehabrate
 ```
 
-[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/withastro/astro/tree/latest/examples/minimal)
-[![Open with CodeSandbox](https://assets.codesandbox.io/github/button-edit-lime.svg)](https://codesandbox.io/p/sandbox/github/withastro/astro/tree/latest/examples/minimal)
-[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/withastro/astro?devcontainer_path=.devcontainer/minimal/devcontainer.json)
-
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
-
-## 🚀 Project Structure
-
-Inside of your Astro project, you'll see the following folders and files:
-
-```text
-/
-├── public/
-├── src/
-│   └── pages/
-│       └── index.astro
-└── package.json
+2. Install dependencies
+```bash
+npm install
 ```
 
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
+3. Start the development server
+```bash
+npm run dev
+```
 
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
+4. Open your browser and navigate to http://localhost:4321
 
-Any static assets, like images, can be placed in the `public/` directory.
+## Building for Production
 
-## 🧞 Commands
+To build the site for production, run:
+
+```bash
+npm run build
+```
+
+This will generate a static site in the `dist` directory that can be deployed to any static hosting service.
+
+## Technology Stack
+
+- [Astro](https://astro.build/) - The web framework for content-driven websites
+- HTML, CSS, JavaScript
+- Deployed on [Netlify](https://netlify.com)
+
+## Project Structure
+
+- `src/components` - Reusable UI components
+- `src/layouts` - Page layouts
+- `src/pages` - All page routes
+- `src/styles` - Global CSS styles
+- `public` - Static assets like images and fonts
+
+## Commands
 
 All commands are run from the root of the project, from a terminal:
 
@@ -42,6 +74,15 @@ All commands are run from the root of the project, from a terminal:
 | `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
 | `npm run astro -- --help` | Get help using the Astro CLI                     |
 
-## 👀 Want to learn more?
+## Contributing
 
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+We welcome contributions! Please read our [contributing guidelines](CONTRIBUTING.md) for details.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Contact
+
+- Email: support@rehabrate.com
+- Website: [rehabrate.com](https://rehabrate.com)# rehabrate
