@@ -1,0 +1,96 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="About RehabRate">
+  <div class="container section">
+    <h1 class="mb-8">About RehabRate</h1>
+    
+    <div class="about-content">
+      <div class="about-text">
+        <h2 class="mb-4">Our Mission</h2>
+        <p class="mb-8">
+          RehabRate was created with a simple yet powerful mission: to bring transparency and accountability to addiction treatment. We believe that everyone deserves access to high-quality, effective treatment options that are right for their unique needs.
+        </p>
+        
+        <h2 class="mb-4">Who We Are</h2>
+        <p class="mb-8">
+          Founded by a team of healthcare professionals, people in recovery, and family members affected by addiction, RehabRate combines lived experience with clinical expertise. Our diverse backgrounds give us unique insights into what makes treatment effective and what information people need when making these crucial decisions.
+        </p>
+        
+        <h2 class="mb-4">What We Do</h2>
+        <p class="mb-8">
+          RehabRate provides a platform for real people to share their experiences with addiction treatment centers. We verify all reviews for authenticity while also providing expert ratings based on evidence-based criteria. Our goal is to help you find the right treatment option faster, with more confidence, and better outcomes.
+        </p>
+        
+        <h2 class="mb-4">Our Values</h2>
+        <ul class="values-list mb-8">
+          <li><strong>Transparency:</strong> We believe in full disclosure about treatment options, pricing, and outcomes.</li>
+          <li><strong>Authenticity:</strong> All reviews on our platform come from real people with real experiences.</li>
+          <li><strong>Accessibility:</strong> We make it easy to find the information you need when you need it most.</li>
+          <li><strong>Compassion:</strong> We understand the challenges of addiction and recovery and approach our work with empathy.</li>
+          <li><strong>Evidence-Based:</strong> We prioritize treatment approaches backed by scientific research.</li>
+        </ul>
+      </div>
+      
+      <div class="about-cta card">
+        <h3 class="mb-4">Join Our Mission</h3>
+        <p class="mb-4">Help us improve addiction treatment by sharing your experiences and supporting our work.</p>
+        <a href="/contact" class="btn btn-primary">Get Involved</a>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<style>
+  h1 {
+    font-size: 2.5rem;
+    color: var(--color-text);
+    text-align: center;
+  }
+  
+  h2 {
+    font-size: 1.75rem;
+    color: var(--color-text);
+  }
+  
+  p {
+    font-size: 1.125rem;
+    line-height: 1.7;
+    color: var(--color-text-light);
+  }
+  
+  .about-content {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+  
+  .values-list {
+    list-style-type: none;
+    padding: 0;
+  }
+  
+  .values-list li {
+    padding: 1rem 0;
+    border-bottom: 1px solid #eaeaea;
+    color: var(--color-text-light);
+    line-height: 1.6;
+  }
+  
+  .values-list li:last-child {
+    border-bottom: none;
+  }
+  
+  .about-cta {
+    padding: 2rem;
+    text-align: center;
+    align-self: start;
+  }
+  
+  @media (min-width: 768px) {
+    .about-content {
+      grid-template-columns: 2fr 1fr;
+    }
+  }
+</style>
