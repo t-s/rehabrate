@@ -2,7 +2,6 @@
 import Layout from '../layouts/Layout.astro';
 import Hero from '../components/Hero.astro';
 import Features from '../components/Features.astro';
-import Testimonials from '../components/Testimonials.astro';
 import Cta from '../components/Cta.astro';
 ---
 
@@ -42,34 +41,6 @@ import Cta from '../components/Cta.astro';
   </div>
   
   <Features />
-  
-  <Testimonials />
-  
-  <div class="stats section">
-    <div class="container">
-      <div class="stats-grid">
-        <div class="stat">
-          <h3 class="stat-number">2,500+</h3>
-          <p class="stat-label">Treatment Centers</p>
-        </div>
-        
-        <div class="stat">
-          <h3 class="stat-number">15,000+</h3>
-          <p class="stat-label">Verified Reviews</p>
-        </div>
-        
-        <div class="stat">
-          <h3 class="stat-number">85%</h3>
-          <p class="stat-label">Found Better Matches</p>
-        </div>
-        
-        <div class="stat">
-          <h3 class="stat-number">24/7</h3>
-          <p class="stat-label">Support Available</p>
-        </div>
-      </div>
-    </div>
-  </div>
   
   <Cta />
 </Layout>
@@ -118,28 +89,6 @@ import Cta from '../components/Cta.astro';
     max-width: 300px;
   }
   
-  .stats {
-    background-color: #f8f9fa;
-  }
-  
-  .stats-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 2rem;
-    text-align: center;
-  }
-  
-  .stat-number {
-    font-size: 2.5rem;
-    color: var(--color-primary);
-    margin-bottom: 0.5rem;
-  }
-  
-  .stat-label {
-    color: var(--color-text-light);
-    font-weight: 500;
-  }
-  
   @media (min-width: 640px) {
     .steps {
       grid-template-columns: repeat(2, 1fr);
@@ -148,10 +97,6 @@ import Cta from '../components/Cta.astro';
   
   @media (min-width: 768px) {
     .steps {
-      grid-template-columns: repeat(4, 1fr);
-    }
-    
-    .stats-grid {
       grid-template-columns: repeat(4, 1fr);
     }
   }
