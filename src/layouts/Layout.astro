@@ -27,12 +27,11 @@ const { title, description = 'Find and rate the best addiction treatment centers
       <div class="container">
         <nav>
           <div class="logo">
-            <a href="/"><strong>RehabRate</strong></a>
+            <a href="/">
+              <img src="/images/logo.svg" alt="RehabRate Logo" width="180" height="40" />
+            </a>
           </div>
           <div class="nav-links">
-            <a href="/about">About</a>
-            <a href="/centers">Treatment Centers</a>
-            <a href="/contact">Contact</a>
             <a href="/login" class="btn btn-primary">Login / Sign Up</a>
           </div>
         </nav>
@@ -55,6 +54,10 @@ const { title, description = 'Find and rate the best addiction treatment centers
 </html>
 
 <style>
+  header {
+    padding-bottom: 1rem;
+  }
+
   nav {
     display: flex;
     justify-content: space-between;
@@ -62,12 +65,17 @@ const { title, description = 'Find and rate the best addiction treatment centers
   }
 
   .logo {
-    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+  }
+  
+  .logo img {
+    display: block;
+    height: auto;
   }
 
   .nav-links {
     display: flex;
-    gap: 1.5rem;
     align-items: center;
   }
 

@@ -1,12 +1,13 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
-  <rect width="128" height="128" rx="16" fill="#3498db" />
-  <text x="64" y="84" font-family="Arial" font-size="72" font-weight="bold" text-anchor="middle" fill="white">R</text>
+<svg width="48" height="48" xmlns="http://www.w3.org/2000/svg">
+  <rect width="48" height="48" rx="8" fill="#f9f9f9" />
+  <g transform="translate(24, 24)">
+    <circle cx="-10" cy="0" r="7" fill="#3498db" opacity="0.9" />
+    <circle cx="0" cy="0" r="7" fill="#2ecc71" opacity="0.9" />
+    <circle cx="10" cy="0" r="7" fill="#f39c12" opacity="0.9" />
+  </g>
   <style>
-    rect { fill: #3498db; }
-    text { fill: white; }
     @media (prefers-color-scheme: dark) {
-      rect { fill: #2980b9; }
-      text { fill: #ffffff; }
+      rect { fill: #222; }
     }
   </style>
 </svg>
