@@ -1,0 +1,650 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Find Treatment Centers">
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // DOM elements
+      const searchForm = document.getElementById('search-form');
+      const locationInput = document.getElementById('location');
+      const radiusInput = document.getElementById('radius');
+      const resultsList = document.querySelector('.centers-list');
+      const noResults = document.querySelector('.no-results');
+      const loadingIndicator = document.querySelector('.loading-indicator');
+      
+      // Sample treatment centers data with coordinates
+      const centers = [
+        {
+          id: 1,
+          name: "Recovery Unplugged - Austin",
+          location: "Austin, TX",
+          coordinates: { lat: 30.2672, lng: -97.7431 },
+          address: "1908 S 1st St, Austin, TX 78704",
+          rating: 4.8,
+          specialty: ["Music Therapy", "Dual Diagnosis", "Detox"],
+          insurance: ["Aetna", "Blue Cross", "Cigna", "Medicare"],
+          phone: "(512) 522-7724",
+          website: "https://www.recoveryunplugged.com/locations/austin/"
+        },
+        {
+          id: 2,
+          name: "Recovery Unplugged - Fort Lauderdale",
+          location: "Fort Lauderdale, FL",
+          coordinates: { lat: 26.1224, lng: -80.1373 },
+          address: "515 NE 28th St, Fort Lauderdale, FL 33334",
+          rating: 4.7,
+          specialty: ["Music Therapy", "Residential", "PHP"],
+          insurance: ["Aetna", "Blue Cross", "Cigna", "Humana"],
+          phone: "(954) 951-9630",
+          website: "https://www.recoveryunplugged.com/locations/florida/"
+        },
+        {
+          id: 3,
+          name: "Recovery Unplugged - Nashville",
+          location: "Nashville, TN",
+          coordinates: { lat: 36.1627, lng: -86.7816 },
+          address: "4230 Harding Pike, Nashville, TN 37205",
+          rating: 4.9,
+          specialty: ["Music Therapy", "IOP", "Residential"],
+          insurance: ["Aetna", "Blue Cross", "Cigna", "United Healthcare"],
+          phone: "(615) 323-2730",
+          website: "https://www.recoveryunplugged.com/locations/nashville/"
+        },
+        {
+          id: 4,
+          name: "Recovery Unplugged - Northern Virginia",
+          location: "Annandale, VA",
+          coordinates: { lat: 38.8304, lng: -77.2165 },
+          address: "7501 Little River Turnpike, Annandale, VA 22003",
+          rating: 4.6,
+          specialty: ["Music Therapy", "Outpatient", "MAT"],
+          insurance: ["Aetna", "Blue Cross", "Cigna", "Tricare"],
+          phone: "(703) 844-9885",
+          website: "https://www.recoveryunplugged.com/locations/virginia/"
+        },
+        {
+          id: 5,
+          name: "Recovery Unplugged - Lake Worth",
+          location: "Lake Worth, FL",
+          coordinates: { lat: 26.6194, lng: -80.0587 },
+          address: "8733 Boynton Beach Blvd, Boynton Beach, FL 33472",
+          rating: 4.8,
+          specialty: ["Music Therapy", "Detox", "Residential"],
+          insurance: ["Aetna", "Blue Cross", "Cigna", "United Healthcare"],
+          phone: "(561) 220-3490",
+          website: "https://www.recoveryunplugged.com/locations/florida/"
+        }
+      ];
+      
+      // Handle search form submission
+      searchForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+        
+        // Get search parameters
+        const location = locationInput.value.trim();
+        const radius = parseInt(radiusInput.value) || 50; // Default to 50 miles
+        
+        // Show loading indicator
+        loadingIndicator.style.display = 'block';
+        noResults.style.display = 'none';
+        
+        // Clear existing results
+        Array.from(resultsList.children).forEach(child => {
+          if (!child.classList.contains('no-results') && !child.classList.contains('loading-indicator')) {
+            child.remove();
+          }
+        });
+        
+        // Use browser geolocation if available
+        if (location.toLowerCase() === 'my location' && navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            (position) => {
+              const userCoords = {
+                lat: position.coords.latitude,
+                lng: position.coords.longitude
+              };
+              filterCentersByDistance(userCoords, radius);
+            },
+            (error) => {
+              console.error("Geolocation error:", error);
+              alert("Unable to access your location. Please enter a city name instead.");
+              loadingIndicator.style.display = 'none';
+            }
+          );
+        } else {
+          // Simulate geocoding (would use a real geocoding service in production)
+          geocodeLocation(location)
+            .then(coords => {
+              filterCentersByDistance(coords, radius);
+            })
+            .catch(error => {
+              console.error("Geocoding error:", error);
+              alert("Unable to find coordinates for this location. Please try another location.");
+              loadingIndicator.style.display = 'none';
+            });
+        }
+      });
+      
+      // Function to simulate geocoding
+      function geocodeLocation(location) {
+        return new Promise((resolve, reject) => {
+          // This is a simulation - in a real app, you would use a geocoding service
+          // like Google Maps Geocoding API or Mapbox Geocoding API
+          
+          // Sample coordinates for common cities
+          const cityCoordinates = {
+            "new york": { lat: 40.7128, lng: -74.0060 },
+            "los angeles": { lat: 34.0522, lng: -118.2437 },
+            "chicago": { lat: 41.8781, lng: -87.6298 },
+            "houston": { lat: 29.7604, lng: -95.3698 },
+            "phoenix": { lat: 33.4484, lng: -112.0740 },
+            "philadelphia": { lat: 39.9526, lng: -75.1652 },
+            "san antonio": { lat: 29.4241, lng: -98.4936 },
+            "san diego": { lat: 32.7157, lng: -117.1611 },
+            "dallas": { lat: 32.7767, lng: -96.7970 },
+            "san jose": { lat: 37.3382, lng: -121.8863 },
+            "austin": { lat: 30.2672, lng: -97.7431 },
+            "nashville": { lat: 36.1627, lng: -86.7816 },
+            "boston": { lat: 42.3601, lng: -71.0589 },
+            "miami": { lat: 25.7617, lng: -80.1918 },
+            "fort lauderdale": { lat: 26.1224, lng: -80.1373 },
+            "annandale": { lat: 38.8304, lng: -77.2165 },
+            "lake worth": { lat: 26.6153, lng: -80.0695 },
+          };
+          
+          const normalizedLocation = location.toLowerCase();
+          
+          // Add a small delay to simulate API call
+          setTimeout(() => {
+            if (cityCoordinates[normalizedLocation]) {
+              resolve(cityCoordinates[normalizedLocation]);
+            } else {
+              // For demo purposes, return random coordinates near the US center
+              resolve({
+                lat: 39.8283 + (Math.random() - 0.5) * 10,
+                lng: -98.5795 + (Math.random() - 0.5) * 20
+              });
+            }
+          }, 1000);
+        });
+      }
+      
+      // Function to calculate distance between two coordinates in miles
+      function calculateDistance(coords1, coords2) {
+        const R = 3958.8; // Earth's radius in miles
+        const dLat = toRad(coords2.lat - coords1.lat);
+        const dLon = toRad(coords2.lng - coords1.lng);
+        const a = 
+          Math.sin(dLat/2) * Math.sin(dLat/2) +
+          Math.cos(toRad(coords1.lat)) * Math.cos(toRad(coords2.lat)) * 
+          Math.sin(dLon/2) * Math.sin(dLon/2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        const distance = R * c;
+        
+        return distance;
+      }
+      
+      // Convert degrees to radians
+      function toRad(degrees) {
+        return degrees * Math.PI / 180;
+      }
+      
+      // Filter centers by distance and display results
+      function filterCentersByDistance(userCoords, radius) {
+        // Calculate distance for each center
+        const centersWithDistance = centers.map(center => {
+          const distance = calculateDistance(userCoords, center.coordinates);
+          return { ...center, distance };
+        });
+        
+        // Filter centers within the radius
+        const nearestCenters = centersWithDistance
+          .filter(center => center.distance <= radius)
+          .sort((a, b) => a.distance - b.distance);
+        
+        // Hide loading indicator
+        loadingIndicator.style.display = 'none';
+        
+        // For debugging - log the centers and their distances
+        console.log("User coordinates:", userCoords);
+        console.log("Centers with distances:", centersWithDistance);
+        console.log("Radius:", radius);
+        console.log("Nearest centers:", nearestCenters);
+        
+        // Display results - for demo purposes, always show at least one center
+        if (nearestCenters.length > 0) {
+          displayCenters(nearestCenters);
+        } else {
+          // Display all centers sorted by distance if none are within radius
+          const sortedCenters = centersWithDistance.sort((a, b) => a.distance - b.distance);
+          displayCenters(sortedCenters.slice(0, 3)); // Show the 3 closest centers
+          
+          // Show a message that we're displaying centers outside the search radius
+          const messageDiv = document.createElement('div');
+          messageDiv.className = 'search-message';
+          messageDiv.innerHTML = `<p>No centers found within ${radius} miles. Showing the closest centers to your location.</p>`;
+          resultsList.insertBefore(messageDiv, resultsList.firstChild);
+        }
+      }
+      
+      // Display centers in the results list
+      function displayCenters(centers) {
+        centers.forEach(center => {
+          const centerCard = document.createElement('div');
+          centerCard.className = 'center-card';
+          
+          // Generate stars for rating
+          const stars = generateRatingStars(center.rating);
+          
+          // Format specialties and insurance
+          const specialties = center.specialty.join(', ');
+          const insurance = center.insurance.join(', ');
+          
+          centerCard.innerHTML = `
+            <div class="center-header">
+              <h3>${center.name}</h3>
+              <div class="center-rating">${stars} <span class="rating-value">${center.rating.toFixed(1)}</span></div>
+            </div>
+            <div class="center-location">
+              <p>${center.address}</p>
+              <p class="distance">${center.distance ? center.distance.toFixed(1) + ' miles away' : ''}</p>
+            </div>
+            <div class="center-details">
+              <div class="detail-group">
+                <h4>Specialties</h4>
+                <p>${specialties}</p>
+              </div>
+              <div class="detail-group">
+                <h4>Insurance Accepted</h4>
+                <p>${insurance}</p>
+              </div>
+            </div>
+            <div class="center-contact">
+              <a href="tel:${center.phone}" class="phone-link">${center.phone}</a>
+              <a href="${center.website}" target="_blank" class="website-link">Visit Website</a>
+            </div>
+            <a href="/reviews?center=${center.id}" class="btn btn-secondary view-reviews">Read Reviews</a>
+          `;
+          
+          resultsList.appendChild(centerCard);
+        });
+      }
+      
+      // Generate rating stars HTML
+      function generateRatingStars(rating) {
+        let stars = '';
+        for (let i = 1; i <= 5; i++) {
+          if (i <= Math.floor(rating)) {
+            stars += '<span class="star filled">★</span>';
+          } else if (i - 0.5 <= rating) {
+            stars += '<span class="star half-filled">★</span>';
+          } else {
+            stars += '<span class="star">☆</span>';
+          }
+        }
+        return stars;
+      }
+      
+      // Use geolocation on "Use My Location" button click
+      document.getElementById('use-location').addEventListener('click', (event) => {
+        event.preventDefault();
+        locationInput.value = "My Location";
+        
+        // Automatically submit the form to start the search
+        searchForm.dispatchEvent(new Event('submit'));
+      });
+    });
+  </script>
+
+  <section class="centers-header">
+    <div class="container">
+      <h1>Find Treatment Centers</h1>
+      <p>Locate addiction treatment centers near you or in any location</p>
+    </div>
+  </section>
+
+  <section class="search-section">
+    <div class="container">
+      <div class="search-container">
+        <form id="search-form">
+          <div class="search-fields">
+            <div class="form-group">
+              <label for="location">Location</label>
+              <div class="input-with-button">
+                <input type="text" id="location" placeholder="Enter city or ZIP code" required>
+                <button type="button" id="use-location" class="location-btn">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="radius">Distance (miles)</label>
+              <select id="radius">
+                <option value="10">10 miles</option>
+                <option value="25">25 miles</option>
+                <option value="50" selected>50 miles</option>
+                <option value="100">100 miles</option>
+                <option value="250">250 miles</option>
+              </select>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary search-btn">Search</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <section class="results-section">
+    <div class="container">
+      <h2>Treatment Centers</h2>
+      
+      <div class="centers-list">
+        <div class="loading-indicator">
+          <div class="spinner"></div>
+          <p>Searching for centers near you...</p>
+        </div>
+        
+        <div class="no-results">
+          <p>No treatment centers found matching your search criteria. Please try a different location or increase the search radius.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+</Layout>
+
+<style>
+  /* Header styles */
+  .centers-header {
+    background-color: var(--color-background);
+    padding: 3rem 0;
+    text-align: center;
+    border-bottom: 1px solid #eaeaea;
+  }
+
+  .centers-header h1 {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+    color: var(--color-text);
+  }
+
+  .centers-header p {
+    font-size: 1.2rem;
+    color: var(--color-text-light);
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  /* Search section styles */
+  .search-section {
+    padding: 2rem 0;
+    background-color: white;
+    border-bottom: 1px solid #eaeaea;
+  }
+
+  .search-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 1.5rem;
+    background-color: white;
+    border-radius: var(--border-radius);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  }
+
+  .search-fields {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .form-group {
+    margin-bottom: 0.5rem;
+  }
+
+  .form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: var(--color-text);
+  }
+
+  .input-with-button {
+    display: flex;
+    position: relative;
+  }
+
+  .input-with-button input {
+    flex: 1;
+    padding-right: 40px;
+  }
+
+  .location-btn {
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    background: none;
+    border: none;
+    padding: 0 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--color-primary);
+  }
+
+  .location-btn svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  input, select {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #e1e1e1;
+    border-radius: var(--border-radius);
+    font-family: var(--font-sans);
+    font-size: 1rem;
+  }
+
+  input:focus, select:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+  }
+
+  .search-btn {
+    width: 100%;
+    padding: 0.75rem;
+  }
+
+  /* Results section styles */
+  .results-section {
+    padding: 3rem 0;
+  }
+
+  .results-section h2 {
+    margin-bottom: 1.5rem;
+    font-size: 1.75rem;
+    color: var(--color-text);
+  }
+
+  .centers-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .loading-indicator {
+    display: none;
+    text-align: center;
+    padding: 2rem;
+  }
+
+  .spinner {
+    width: 40px;
+    height: 40px;
+    margin: 0 auto 1rem;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid var(--color-primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  .no-results, .search-message {
+    display: none;
+    background-color: white;
+    border-radius: var(--border-radius);
+    padding: 2rem;
+    text-align: center;
+    color: var(--color-text-light);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    margin-bottom: 1rem;
+  }
+  
+  .search-message {
+    display: block;
+    background-color: #f8f9fa;
+    border-left: 4px solid var(--color-primary);
+    text-align: left;
+    padding: 1rem 1.5rem;
+  }
+
+  /* Center card styles */
+  .center-card {
+    background-color: white;
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  }
+
+  .center-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+  }
+
+  .center-header h3 {
+    font-size: 1.25rem;
+    color: var(--color-text);
+    margin: 0;
+  }
+
+  .center-rating {
+    display: flex;
+    align-items: center;
+    color: var(--color-text);
+  }
+
+  .star {
+    color: #ccc;
+    margin-right: 2px;
+  }
+
+  .star.filled {
+    color: var(--color-accent);
+  }
+
+  .star.half-filled {
+    position: relative;
+    color: #ccc;
+  }
+
+  .star.half-filled::before {
+    content: "★";
+    position: absolute;
+    color: var(--color-accent);
+    width: 50%;
+    overflow: hidden;
+  }
+
+  .rating-value {
+    margin-left: 0.5rem;
+    font-weight: 500;
+  }
+
+  .center-location {
+    margin-bottom: 1rem;
+    color: var(--color-text-light);
+  }
+
+  .center-location p {
+    margin: 0;
+  }
+
+  .distance {
+    margin-top: 0.25rem;
+    font-weight: 500;
+    color: var(--color-primary);
+  }
+
+  .center-details {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .detail-group h4 {
+    font-size: 1rem;
+    margin: 0 0 0.5rem 0;
+    color: var(--color-text);
+  }
+
+  .detail-group p {
+    margin: 0;
+    color: var(--color-text-light);
+    font-size: 0.9rem;
+  }
+
+  .center-contact {
+    display: flex;
+    margin-bottom: 1rem;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .phone-link, .website-link {
+    color: var(--color-primary);
+    text-decoration: none;
+    font-weight: 500;
+  }
+
+  .view-reviews {
+    display: inline-block;
+    width: auto;
+  }
+
+  @media (max-width: 768px) {
+    .container {
+      padding-left: 2.5rem !important;
+      padding-right: 2.5rem !important;
+    }
+    
+    .search-fields {
+      grid-template-columns: 1fr;
+    }
+    
+    .center-details {
+      grid-template-columns: 1fr;
+    }
+    
+    .center-header {
+      flex-direction: column;
+    }
+    
+    .center-rating {
+      margin-top: 0.5rem;
+    }
+  }
+</style>
