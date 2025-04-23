@@ -43,6 +43,11 @@ import Layout from '../layouts/Layout.astro';
 </Layout>
 
 <style>
+  .container {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+  
   h1 {
     font-size: 2.5rem;
     color: var(--color-text);
@@ -76,6 +81,13 @@ import Layout from '../layouts/Layout.astro';
     border-bottom: 1px solid #eaeaea;
     color: var(--color-text-light);
     line-height: 1.6;
+  }
+  
+  @media (max-width: 768px) {
+    .container {
+      padding-left: 2.5rem !important;
+      padding-right: 2.5rem !important;
+    }
   }
   
   .values-list li:last-child {
