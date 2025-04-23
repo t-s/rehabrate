@@ -1,0 +1,404 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+// This is where we would normally fetch topics from a database
+// For this demo, we'll use client-side JavaScript to store topics temporarily
+---
+
+<Layout title="Community Forum">
+  <script>
+    // Client-side JavaScript to handle form submission and topic display
+    document.addEventListener('DOMContentLoaded', () => {
+      const topicForm = document.getElementById('topic-form');
+      const topicsList = document.querySelector('.topics-list');
+      const emptyTopics = document.querySelector('.empty-topics');
+      
+      // Check if there are any stored topics in localStorage
+      const storedTopics = JSON.parse(localStorage.getItem('forumTopics') || '[]');
+      
+      // Display stored topics if they exist
+      if (storedTopics.length > 0) {
+        renderTopics(storedTopics);
+      }
+      
+      // Handle form submission
+      topicForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+        
+        const titleInput = document.getElementById('topic-title');
+        const categoryInput = document.getElementById('topic-category');
+        const contentInput = document.getElementById('topic-content');
+        
+        // Validate inputs
+        if (!titleInput.value || !categoryInput.value || !contentInput.value) {
+          alert('Please fill in all fields');
+          return;
+        }
+        
+        // Create new topic object
+        const newTopic = {
+          id: Date.now(),
+          title: titleInput.value,
+          category: categoryInput.value,
+          content: contentInput.value,
+          author: 'Anonymous User', // In a real app, this would be the logged-in user
+          date: new Date(),
+          views: 1,
+          comments: 0
+        };
+        
+        // Add topic to stored topics
+        storedTopics.push(newTopic);
+        localStorage.setItem('forumTopics', JSON.stringify(storedTopics));
+        
+        // Update display
+        renderTopics(storedTopics);
+        
+        // Reset form
+        topicForm.reset();
+        
+        // Scroll to topics section
+        document.querySelector('.forum-topics').scrollIntoView({ behavior: 'smooth' });
+      });
+      
+      // Function to render topics
+      function renderTopics(topics) {
+        // Hide empty state if we have topics
+        if (topics.length > 0) {
+          emptyTopics.style.display = 'none';
+        } else {
+          emptyTopics.style.display = 'block';
+          return;
+        }
+        
+        // Clear existing topics except empty state
+        Array.from(topicsList.children).forEach(child => {
+          if (!child.classList.contains('empty-topics')) {
+            child.remove();
+          }
+        });
+        
+        // Sort topics by newest first
+        topics.sort((a, b) => new Date(b.date) - new Date(a.date));
+        
+        // Add topics to DOM
+        topics.forEach(topic => {
+          const topicCard = document.createElement('div');
+          topicCard.className = 'topic-card';
+          
+          // Format date
+          const date = new Date(topic.date);
+          const timeAgo = getTimeAgo(date);
+          
+          topicCard.innerHTML = `
+            <div class="topic-info">
+              <h3><a href="#topic-${topic.id}">${topic.title}</a></h3>
+              <p class="topic-meta">
+                Posted by <a href="#user">${topic.author}</a> • ${timeAgo} • ${topic.comments} comments
+              </p>
+              <p class="topic-excerpt">${topic.content.substring(0, 150)}${topic.content.length > 150 ? '...' : ''}</p>
+            </div>
+            <div class="topic-stats">
+              <div class="views">
+                <span class="count">${topic.views}</span>
+                <span class="label">views</span>
+              </div>
+              <div class="comments">
+                <span class="count">${topic.comments}</span>
+                <span class="label">replies</span>
+              </div>
+            </div>
+          `;
+          
+          topicsList.appendChild(topicCard);
+        });
+      }
+      
+      // Helper function to format dates as "time ago"
+      function getTimeAgo(date) {
+        const seconds = Math.floor((new Date() - date) / 1000);
+        
+        let interval = Math.floor(seconds / 31536000);
+        if (interval > 1) return interval + ' years ago';
+        if (interval === 1) return '1 year ago';
+        
+        interval = Math.floor(seconds / 2592000);
+        if (interval > 1) return interval + ' months ago';
+        if (interval === 1) return '1 month ago';
+        
+        interval = Math.floor(seconds / 86400);
+        if (interval > 1) return interval + ' days ago';
+        if (interval === 1) return '1 day ago';
+        
+        interval = Math.floor(seconds / 3600);
+        if (interval > 1) return interval + ' hours ago';
+        if (interval === 1) return '1 hour ago';
+        
+        interval = Math.floor(seconds / 60);
+        if (interval > 1) return interval + ' minutes ago';
+        if (interval === 1) return '1 minute ago';
+        
+        return 'just now';
+      }
+    });
+  </script>
+  <section class="forum-header">
+    <div class="container">
+      <h1>Community Forum</h1>
+      <p>Connect with others in recovery and share your experiences</p>
+      <div class="forum-actions">
+        <a href="#new-topic" class="btn btn-primary">Start New Topic</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="forum-topics">
+    <div class="container">
+      <div class="topics-header">
+        <h2>Recent Topics</h2>
+        <div class="topics-filter">
+          <select name="filter" id="topic-filter">
+            <option value="recent">Most Recent</option>
+            <option value="popular">Most Popular</option>
+            <option value="unanswered">Unanswered</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="topics-list">
+        <div class="empty-topics">
+          <p>No topics have been posted yet. Be the first to start a discussion!</p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <section class="new-topic-form" id="new-topic">
+    <div class="container">
+      <h2>Start a New Topic</h2>
+      <form id="topic-form">
+        <div class="form-group">
+          <label for="topic-title">Title</label>
+          <input type="text" id="topic-title" placeholder="Enter topic title" required>
+        </div>
+        <div class="form-group">
+          <label for="topic-category">Category</label>
+          <select id="topic-category" required>
+            <option value="">Select a category</option>
+            <option value="support">Peer Support</option>
+            <option value="treatment">Treatment Options</option>
+            <option value="recovery">Recovery Strategies</option>
+            <option value="family">Family & Loved Ones</option>
+            <option value="resources">Resources</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="topic-content">Content</label>
+          <textarea id="topic-content" rows="6" placeholder="Share your thoughts or questions..." required></textarea>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">Post Topic</button>
+        </div>
+      </form>
+    </div>
+  </section>
+</Layout>
+
+<style>
+  .forum-header {
+    background-color: var(--color-background);
+    padding: 2rem 0;
+    text-align: center;
+    border-bottom: 1px solid #eaeaea;
+  }
+
+  .forum-header h1 {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .forum-header p {
+    font-size: 1.2rem;
+    color: var(--color-text-light);
+    margin-bottom: 1.5rem;
+  }
+
+  .forum-topics {
+    padding: 2rem 0;
+  }
+
+  .topics-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+  }
+
+  .topics-filter select {
+    padding: 0.5rem;
+    border-radius: var(--border-radius);
+    border: 1px solid #eaeaea;
+  }
+
+  .topics-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .empty-topics {
+    background-color: white;
+    border-radius: var(--border-radius);
+    padding: 2rem;
+    text-align: center;
+    color: var(--color-text-light);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  }
+
+  .topic-card {
+    display: flex;
+    justify-content: space-between;
+    background-color: white;
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .topic-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .topic-info {
+    flex: 1;
+  }
+
+  .topic-info h3 {
+    margin-bottom: 0.5rem;
+    font-size: 1.25rem;
+  }
+
+  .topic-info h3 a {
+    color: var(--color-text);
+    text-decoration: none;
+  }
+
+  .topic-info h3 a:hover {
+    color: var(--color-primary);
+  }
+
+  .topic-meta {
+    font-size: 0.875rem;
+    color: var(--color-text-light);
+    margin-bottom: 0.75rem;
+  }
+
+  .topic-meta a {
+    color: var(--color-primary);
+  }
+
+  .topic-excerpt {
+    color: var(--color-text);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .topic-stats {
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
+  }
+
+  .views, .comments {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 50px;
+  }
+
+  .count {
+    font-weight: 600;
+    font-size: 1.25rem;
+    color: var(--color-text);
+  }
+
+  .label {
+    font-size: 0.75rem;
+    color: var(--color-text-light);
+  }
+
+  .pagination {
+    display: flex;
+    justify-content: center;
+    margin-top: 2rem;
+    gap: 0.5rem;
+  }
+
+  .pagination a {
+    display: inline-block;
+    padding: 0.5rem 0.75rem;
+    border-radius: var(--border-radius);
+    border: 1px solid #eaeaea;
+    color: var(--color-text);
+  }
+
+  .pagination a.active,
+  .pagination a:hover {
+    background-color: var(--color-primary);
+    color: white;
+    border-color: var(--color-primary);
+  }
+
+  .new-topic-form {
+    background-color: var(--color-background);
+    padding: 3rem 0;
+    border-top: 1px solid #eaeaea;
+  }
+
+  .new-topic-form h2 {
+    margin-bottom: 1.5rem;
+  }
+
+  .form-group {
+    margin-bottom: 1.5rem;
+  }
+
+  .form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+  }
+
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border-radius: var(--border-radius);
+    border: 1px solid #d1d1d1;
+    font-family: var(--font-sans);
+  }
+
+  .form-actions {
+    margin-top: 2rem;
+  }
+
+  @media (max-width: 768px) {
+    .topic-card {
+      flex-direction: column;
+    }
+
+    .topic-stats {
+      margin-top: 1rem;
+      justify-content: flex-start;
+    }
+
+    .forum-header h1 {
+      font-size: 2rem;
+    }
+  }
+</style>
