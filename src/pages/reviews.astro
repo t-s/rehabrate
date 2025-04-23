@@ -1,0 +1,519 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Treatment Center Reviews">
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // DOM elements
+      const reviewsList = document.querySelector('.reviews-list');
+      const emptyReviews = document.querySelector('.empty-reviews');
+      const reviewForm = document.getElementById('review-form');
+      const mainContent = document.getElementById('main-content');
+      const reviewsSection = document.querySelector('.reviews-section');
+      const newReviewSection = document.querySelector('.new-review-form');
+      const filterSelect = document.getElementById('center-filter');
+      
+      // Load data from localStorage
+      const storedCenters = JSON.parse(localStorage.getItem('treatmentCenters') || '[]');
+      const storedReviews = JSON.parse(localStorage.getItem('centerReviews') || '[]');
+      
+      // If no centers exist, create an initial option
+      if (storedCenters.length === 0) {
+        const sampleCenters = [
+          { id: 1, name: 'Recovery Unplugged', location: 'Multiple Locations, US' }
+        ];
+        // Additional centers can be added here in the future
+        
+        localStorage.setItem('treatmentCenters', JSON.stringify(sampleCenters));
+        populateCenterDropdowns(sampleCenters);
+      } else {
+        populateCenterDropdowns(storedCenters);
+      }
+      
+      // Display stored reviews if they exist
+      if (storedReviews.length > 0) {
+        renderReviews(storedReviews);
+      }
+      
+      // No filter handling needed since we only have one center
+      
+      // Handle review form submission
+      reviewForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+        
+        const centerSelect = document.getElementById('review-center');
+        const ratingInput = document.querySelector('input[name="rating"]:checked');
+        const titleInput = document.getElementById('review-title');
+        const contentInput = document.getElementById('review-content');
+        
+        // Validate inputs
+        if (!centerSelect.value || !ratingInput || !titleInput.value || !contentInput.value) {
+          alert('Please fill in all fields and select a rating');
+          return;
+        }
+        
+        // Create new review object
+        const newReview = {
+          id: Date.now(),
+          centerId: parseInt(centerSelect.value),
+          centerName: centerSelect.options[centerSelect.selectedIndex].text,
+          rating: parseInt(ratingInput.value),
+          title: titleInput.value,
+          content: contentInput.value,
+          author: 'Anonymous User', // In a real app, this would be the logged-in user
+          date: new Date(),
+          helpful: 0
+        };
+        
+        // Add review to stored reviews
+        storedReviews.push(newReview);
+        localStorage.setItem('centerReviews', JSON.stringify(storedReviews));
+        
+        // Update display
+        renderReviews(storedReviews);
+        
+        // Reset form
+        reviewForm.reset();
+        
+        // Scroll to reviews section
+        reviewsSection.scrollIntoView({ behavior: 'smooth' });
+      });
+      
+      // Handle mark as helpful button
+      document.addEventListener('click', (event) => {
+        if (event.target.matches('.helpful-btn')) {
+          const reviewId = parseInt(event.target.getAttribute('data-review-id'));
+          markAsHelpful(reviewId);
+        }
+      });
+      
+      // Function to mark a review as helpful
+      function markAsHelpful(reviewId) {
+        const reviewIndex = storedReviews.findIndex(r => r.id === reviewId);
+        if (reviewIndex === -1) return;
+        
+        // Increment helpful count
+        storedReviews[reviewIndex].helpful += 1;
+        localStorage.setItem('centerReviews', JSON.stringify(storedReviews));
+        
+        // Update the UI
+        const helpfulCount = document.querySelector(`.helpful-count[data-review-id="${reviewId}"]`);
+        if (helpfulCount) {
+          helpfulCount.textContent = storedReviews[reviewIndex].helpful;
+        }
+        
+        // Disable the button for this session
+        const helpfulBtn = document.querySelector(`.helpful-btn[data-review-id="${reviewId}"]`);
+        if (helpfulBtn) {
+          helpfulBtn.disabled = true;
+          helpfulBtn.classList.add('voted');
+          helpfulBtn.textContent = 'Marked as Helpful';
+        }
+      }
+      
+      // Function to populate center dropdowns
+      // Note: We're not using this to populate the main dropdown since we've hardcoded Recovery Unplugged
+      // This is kept for future extensibility if we add dynamic center loading
+      function populateCenterDropdowns(centers) {
+        // The dropdown is now hardcoded in the HTML
+        // This function is kept for potential future use
+      }
+      
+      // Function to render reviews
+      function renderReviews(reviews) {
+        // Hide empty state if we have reviews
+        if (reviews.length > 0) {
+          emptyReviews.style.display = 'none';
+        } else {
+          emptyReviews.style.display = 'block';
+          return;
+        }
+        
+        // Clear existing reviews except empty state
+        Array.from(reviewsList.children).forEach(child => {
+          if (!child.classList.contains('empty-reviews')) {
+            child.remove();
+          }
+        });
+        
+        // Sort reviews by newest first
+        reviews.sort((a, b) => new Date(b.date) - new Date(a.date));
+        
+        // Add reviews to DOM
+        reviews.forEach(review => {
+          const reviewCard = document.createElement('div');
+          reviewCard.className = 'review-card';
+          
+          // Format date
+          const date = new Date(review.date);
+          const timeAgo = getTimeAgo(date);
+          
+          // Generate star rating
+          const stars = generateStarRating(review.rating);
+          
+          reviewCard.innerHTML = `
+            <div class="review-header">
+              <h3>${review.title}</h3>
+              <div class="review-meta">
+                <div class="review-center">${review.centerName}</div>
+                <div class="review-rating">${stars}</div>
+              </div>
+            </div>
+            <div class="review-content">
+              <p>${review.content}</p>
+            </div>
+            <div class="review-footer">
+              <div class="review-author">
+                Posted by ${review.author} • ${timeAgo}
+              </div>
+              <div class="review-helpful">
+                <span class="helpful-count" data-review-id="${review.id}">${review.helpful}</span> people found this helpful
+                <button class="helpful-btn" data-review-id="${review.id}">Mark as Helpful</button>
+              </div>
+            </div>
+          `;
+          
+          reviewsList.appendChild(reviewCard);
+        });
+      }
+      
+      // Function to generate star rating HTML
+      function generateStarRating(rating) {
+        let stars = '';
+        for (let i = 1; i <= 5; i++) {
+          if (i <= rating) {
+            stars += '<span class="star filled">★</span>';
+          } else {
+            stars += '<span class="star">☆</span>';
+          }
+        }
+        return stars;
+      }
+      
+      // Helper function to format dates as "time ago"
+      function getTimeAgo(date) {
+        const seconds = Math.floor((new Date() - date) / 1000);
+        
+        let interval = Math.floor(seconds / 31536000);
+        if (interval > 1) return interval + ' years ago';
+        if (interval === 1) return '1 year ago';
+        
+        interval = Math.floor(seconds / 2592000);
+        if (interval > 1) return interval + ' months ago';
+        if (interval === 1) return '1 month ago';
+        
+        interval = Math.floor(seconds / 86400);
+        if (interval > 1) return interval + ' days ago';
+        if (interval === 1) return '1 day ago';
+        
+        interval = Math.floor(seconds / 3600);
+        if (interval > 1) return interval + ' hours ago';
+        if (interval === 1) return '1 hour ago';
+        
+        interval = Math.floor(seconds / 60);
+        if (interval > 1) return interval + ' minutes ago';
+        if (interval === 1) return '1 minute ago';
+        
+        return 'just now';
+      }
+    });
+  </script>
+
+  <section class="reviews-header">
+    <div class="container">
+      <h1>Treatment Center Reviews</h1>
+      <p>Read and share honest reviews of addiction treatment centers</p>
+      <div class="reviews-actions">
+        <a href="#new-review" class="btn btn-primary">Write a Review</a>
+      </div>
+    </div>
+  </section>
+
+  <div id="main-content">
+    <section class="reviews-section">
+      <div class="container">
+        <div class="reviews-header">
+          <h2>Recent Reviews</h2>
+        </div>
+
+        <div class="reviews-list">
+          <div class="empty-reviews">
+            <p>No reviews have been posted yet. Be the first to share your experience!</p>
+          </div>
+          <!-- Reviews will be populated by JavaScript -->
+        </div>
+      </div>
+    </section>
+
+    <section class="new-review-form" id="new-review">
+      <div class="container">
+        <h2>Write a Review</h2>
+        <form id="review-form">
+          <div class="form-group">
+            <label for="review-center">Treatment Center</label>
+            <select id="review-center" required>
+              <option value="">Select a Treatment Center</option>
+              <option value="1">Recovery Unplugged (Multiple Locations, US)</option>
+              <!-- Additional centers can be added here -->
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label>Rating</label>
+            <div class="rating-input">
+              <div class="rating-option">
+                <input type="radio" id="star5" name="rating" value="5" required>
+                <label for="star5">5 stars</label>
+              </div>
+              <div class="rating-option">
+                <input type="radio" id="star4" name="rating" value="4">
+                <label for="star4">4 stars</label>
+              </div>
+              <div class="rating-option">
+                <input type="radio" id="star3" name="rating" value="3">
+                <label for="star3">3 stars</label>
+              </div>
+              <div class="rating-option">
+                <input type="radio" id="star2" name="rating" value="2">
+                <label for="star2">2 stars</label>
+              </div>
+              <div class="rating-option">
+                <input type="radio" id="star1" name="rating" value="1">
+                <label for="star1">1 star</label>
+              </div>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="review-title">Review Title</label>
+            <input type="text" id="review-title" placeholder="Summarize your experience" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="review-content">Your Review</label>
+            <textarea id="review-content" rows="6" placeholder="Share your experience with this treatment center..." required></textarea>
+          </div>
+          
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Submit Review</button>
+          </div>
+        </form>
+      </div>
+    </section>
+  </div>
+</Layout>
+
+<style>
+  .reviews-header {
+    background-color: var(--color-background);
+    padding: 2rem 0;
+    text-align: center;
+    border-bottom: 1px solid #eaeaea;
+  }
+
+  .reviews-header h1 {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .reviews-header p {
+    font-size: 1.2rem;
+    color: var(--color-text-light);
+    margin-bottom: 1.5rem;
+  }
+
+  .reviews-section {
+    padding: 2rem 0;
+  }
+
+  .reviews-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+  }
+
+  .reviews-filter {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .reviews-filter select {
+    padding: 0.5rem;
+    border-radius: var(--border-radius);
+    border: 1px solid #eaeaea;
+  }
+
+  .reviews-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .empty-reviews {
+    background-color: white;
+    border-radius: var(--border-radius);
+    padding: 2rem;
+    text-align: center;
+    color: var(--color-text-light);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  }
+
+  .review-card {
+    background-color: white;
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  }
+
+  .review-header {
+    margin-bottom: 1rem;
+  }
+
+  .review-header h3 {
+    margin-bottom: 0.5rem;
+    font-size: 1.25rem;
+  }
+
+  .review-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+  }
+
+  .review-center {
+    font-weight: 500;
+    color: var(--color-text);
+  }
+
+  .review-rating {
+    font-size: 1.25rem;
+  }
+
+  .star {
+    color: #ccc;
+  }
+
+  .star.filled {
+    color: var(--color-accent);
+  }
+
+  .review-content {
+    margin-bottom: 1.5rem;
+    color: var(--color-text);
+    line-height: 1.6;
+  }
+
+  .review-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.875rem;
+    color: var(--color-text-light);
+  }
+
+  .review-helpful {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .helpful-count {
+    font-weight: 600;
+  }
+
+  .helpful-btn {
+    background-color: transparent;
+    border: 1px solid var(--color-primary);
+    color: var(--color-primary);
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    font-size: 0.75rem;
+    transition: all 0.2s ease;
+  }
+
+  .helpful-btn:hover:not(:disabled) {
+    background-color: var(--color-primary);
+    color: white;
+  }
+
+  .helpful-btn.voted {
+    background-color: var(--color-background);
+    color: var(--color-text-light);
+    border-color: #ccc;
+    cursor: default;
+  }
+
+  .new-review-form {
+    background-color: var(--color-background);
+    padding: 3rem 0;
+    border-top: 1px solid #eaeaea;
+  }
+
+  .new-review-form h2 {
+    margin-bottom: 1.5rem;
+  }
+
+  .form-group {
+    margin-bottom: 1.5rem;
+  }
+
+  .form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+  }
+
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border-radius: var(--border-radius);
+    border: 1px solid #d1d1d1;
+    font-family: var(--font-sans);
+  }
+
+  .rating-input {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .rating-option {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
+  .form-actions {
+    margin-top: 2rem;
+  }
+
+  @media (max-width: 768px) {
+    .reviews-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 1rem;
+    }
+
+    .review-meta,
+    .review-footer {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.5rem;
+    }
+
+    .review-helpful {
+      margin-top: 0.5rem;
+    }
+    
+    .rating-input {
+      gap: 0.5rem;
+    }
+  }
+</style>
