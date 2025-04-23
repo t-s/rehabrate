@@ -5,12 +5,9 @@
   <div class="container">
     <div class="hero-content">
       <h1>Find the Right Path to Recovery</h1>
-      <p>
-        RehabRate helps you find and review addiction treatment centers that truly work. 
-        Make informed decisions based on real patient experiences and honest feedback.
-      </p>
+      <p>RehabRate helps you find and review treatment centers.</p>
       <div class="hero-buttons">
-        <a href="/centers" class="btn btn-primary">Find Treatment Centers</a>
+        <a href="/centers" class="btn btn-primary">Find Centers</a>
         <a href="/about" class="btn btn-secondary">Learn More</a>
       </div>
     </div>
@@ -22,8 +19,14 @@
 
 <style>
   .hero {
-    padding: 4rem 0;
+    padding: 0;
     background: linear-gradient(to right, var(--color-background) 0%, rgba(255, 255, 255, 0.9) 100%);
+  }
+  
+  @media (min-width: 768px) {
+    .hero {
+      padding: 4rem 0;
+    }
   }
 
   .hero .container {
@@ -64,7 +67,11 @@
   @media (max-width: 767px) {
     .hero-image {
       order: -1;
-      margin-bottom: 1.5rem;
+      margin-bottom: 0.1rem;
+    }
+    
+    .hero-image img {
+      max-height: 110px;
     }
     
     .hero-content {
@@ -72,12 +79,25 @@
     }
     
     .hero-content p {
-      margin-left: auto;
-      margin-right: auto;
+      margin: 0 auto 0.3rem;
+      font-size: 0.8rem;
+      line-height: 1.1;
+      max-width: 90%;
+    }
+    
+    h1 {
+      margin-bottom: 0.1rem;
+      font-size: 1.2rem;
+      line-height: 1;
     }
     
     .hero-buttons {
       justify-content: center;
+      gap: 0.2rem;
+    }
+    
+    .hero .container {
+      gap: 0.1rem;
     }
   }
 
