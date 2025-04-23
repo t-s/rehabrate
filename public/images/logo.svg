@@ -1,8 +1,8 @@
 <svg width="180" height="40" xmlns="http://www.w3.org/2000/svg">
   <g transform="translate(30,20)">
-    <circle cx="-15" cy="0" r="10" fill="#3498db" opacity="0.9"/>
-    <circle cx="0" cy="0" r="10" fill="#2ecc71" opacity="0.9"/>
-    <circle cx="15" cy="0" r="10" fill="#f39c12" opacity="0.9"/>
+    <circle cx="-15" cy="0" r="10" fill="#3498db"/>
+    <circle cx="0" cy="0" r="10" fill="#2ecc71"/>
+    <circle cx="15" cy="0" r="10" fill="#f39c12"/>
   </g>
   <text x="70" y="25" font-family="Arial" font-size="18" font-weight="bold" text-anchor="start" fill="#333">RehabRate</text>
 </svg>

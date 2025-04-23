@@ -57,8 +57,10 @@
   }
 
   .hero-image img {
-    border-radius: var(--border-radius);
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    border-radius: 0; /* Removed border radius */
+    box-shadow: none !important; /* Explicitly removing any shadow */
+    filter: none !important; /* Remove any filter effects */
+    border: none !important; /* Remove any border */
     max-height: 400px;
     object-fit: cover;
     width: 100%;
@@ -68,10 +70,14 @@
     .hero-image {
       order: -1;
       margin-bottom: 0.1rem;
+      box-shadow: none !important;
+      border: none !important;
     }
     
     .hero-image img {
       max-height: 110px;
+      box-shadow: none !important;
+      border: none;
     }
     
     .hero-content {
