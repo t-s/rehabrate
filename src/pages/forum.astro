@@ -12,16 +12,20 @@ import Layout from '../layouts/Layout.astro';
       const topicForm = document.getElementById('topic-form');
       const topicsList = document.querySelector('.topics-list');
       const emptyTopics = document.querySelector('.empty-topics');
+      const mainContent = document.getElementById('main-content');
+      const topicsSection = document.querySelector('.forum-topics');
+      const newTopicSection = document.querySelector('.new-topic-form');
       
-      // Check if there are any stored topics in localStorage
+      // Check if there are any stored topics and comments in localStorage
       const storedTopics = JSON.parse(localStorage.getItem('forumTopics') || '[]');
+      const storedComments = JSON.parse(localStorage.getItem('forumComments') || '[]');
       
       // Display stored topics if they exist
       if (storedTopics.length > 0) {
         renderTopics(storedTopics);
       }
       
-      // Handle form submission
+      // Handle main topic form submission
       topicForm.addEventListener('submit', (event) => {
         event.preventDefault();
         
@@ -58,10 +62,218 @@ import Layout from '../layouts/Layout.astro';
         topicForm.reset();
         
         // Scroll to topics section
-        document.querySelector('.forum-topics').scrollIntoView({ behavior: 'smooth' });
+        topicsSection.scrollIntoView({ behavior: 'smooth' });
+      });
+
+      // Handle clicks on topic titles or view buttons
+      document.addEventListener('click', (event) => {
+        // Check if a topic title or view button was clicked
+        if (event.target.matches('.topic-title-link') || 
+            event.target.closest('.view-topic-btn')) {
+          
+          event.preventDefault();
+          
+          // Get topic ID
+          let topicId;
+          if (event.target.matches('.topic-title-link')) {
+            topicId = event.target.getAttribute('data-topic-id');
+          } else {
+            topicId = event.target.closest('.view-topic-btn').getAttribute('data-topic-id');
+          }
+          
+          if (topicId) {
+            showTopicDetail(parseInt(topicId));
+          }
+        }
+        
+        // Handle the back button
+        if (event.target.matches('.back-to-topics')) {
+          event.preventDefault();
+          showTopicsList();
+        }
+        
+        // Handle comment form submission
+        if (event.target.matches('.comment-submit-btn')) {
+          event.preventDefault();
+          
+          const topicId = parseInt(event.target.getAttribute('data-topic-id'));
+          const commentInput = document.getElementById('comment-content');
+          
+          if (!commentInput.value.trim()) {
+            alert('Please enter a comment');
+            return;
+          }
+          
+          addComment(topicId, commentInput.value);
+          commentInput.value = '';
+        }
       });
       
-      // Function to render topics
+      // Function to show topic detail view
+      function showTopicDetail(topicId) {
+        // Find the topic
+        const topic = storedTopics.find(t => t.id === topicId);
+        if (!topic) return;
+        
+        // Increment view count
+        topic.views += 1;
+        localStorage.setItem('forumTopics', JSON.stringify(storedTopics));
+        
+        // Get comments for this topic
+        const topicComments = storedComments.filter(c => c.topicId === topicId);
+        
+        // Hide topics list and new topic form
+        topicsSection.style.display = 'none';
+        newTopicSection.style.display = 'none';
+        
+        // Create topic detail view
+        const topicDetail = document.createElement('section');
+        topicDetail.className = 'topic-detail';
+        topicDetail.id = 'topic-detail';
+        
+        // Format date
+        const date = new Date(topic.date);
+        const timeAgo = getTimeAgo(date);
+        
+        // Create the HTML for the topic detail
+        topicDetail.innerHTML = `
+          <div class="container">
+            <div class="topic-detail-header">
+              <a href="#" class="back-to-topics">&larr; Back to topics</a>
+              <h1>${topic.title}</h1>
+              <div class="topic-meta">
+                Posted by <a href="#user">${topic.author}</a> • ${timeAgo} • 
+                ${topic.views} view${topic.views !== 1 ? 's' : ''} • 
+                ${topic.comments} comment${topic.comments !== 1 ? 's' : ''}
+              </div>
+              <div class="topic-category">${topic.category}</div>
+            </div>
+            
+            <div class="topic-content">
+              <p>${topic.content}</p>
+            </div>
+            
+            <div class="comments-section">
+              <h2>Comments (${topic.comments})</h2>
+              
+              <div class="comments-list">
+                ${topicComments.length === 0 ? 
+                  '<p class="no-comments">No comments yet. Be the first to comment!</p>' : 
+                  topicComments.map(comment => {
+                    const commentDate = new Date(comment.date);
+                    const commentTimeAgo = getTimeAgo(commentDate);
+                    
+                    return `
+                      <div class="comment">
+                        <div class="comment-meta">
+                          <span class="comment-author">${comment.author}</span>
+                          <span class="comment-date">${commentTimeAgo}</span>
+                        </div>
+                        <div class="comment-content">
+                          <p>${comment.content}</p>
+                        </div>
+                      </div>
+                    `;
+                  }).join('')}
+              </div>
+              
+              <div class="comment-form">
+                <h3>Leave a comment</h3>
+                <form id="comment-form">
+                  <div class="form-group">
+                    <textarea id="comment-content" rows="4" placeholder="Write your comment here..." required></textarea>
+                  </div>
+                  <button type="submit" class="btn btn-primary comment-submit-btn" data-topic-id="${topic.id}">
+                    Post Comment
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+        `;
+        
+        // Add to main content
+        mainContent.appendChild(topicDetail);
+      }
+      
+      // Function to show topics list
+      function showTopicsList() {
+        // Remove topic detail if it exists
+        const topicDetail = document.getElementById('topic-detail');
+        if (topicDetail) {
+          topicDetail.remove();
+        }
+        
+        // Show topics list and new topic form
+        topicsSection.style.display = 'block';
+        newTopicSection.style.display = 'block';
+      }
+      
+      // Function to add a comment to a topic
+      function addComment(topicId, content) {
+        // Find the topic
+        const topicIndex = storedTopics.findIndex(t => t.id === topicId);
+        if (topicIndex === -1) return;
+        
+        // Create new comment
+        const newComment = {
+          id: Date.now(),
+          topicId: topicId,
+          content: content,
+          author: 'Anonymous User', // In a real app, this would be the logged-in user
+          date: new Date()
+        };
+        
+        // Add comment to stored comments
+        storedComments.push(newComment);
+        localStorage.setItem('forumComments', JSON.stringify(storedComments));
+        
+        // Increment comment count on topic
+        storedTopics[topicIndex].comments += 1;
+        localStorage.setItem('forumTopics', JSON.stringify(storedTopics));
+        
+        // Update the comment list in the UI
+        const commentsList = document.querySelector('.comments-list');
+        const noComments = document.querySelector('.no-comments');
+        
+        if (noComments) {
+          noComments.remove();
+        }
+        
+        const commentElement = document.createElement('div');
+        commentElement.className = 'comment';
+        commentElement.innerHTML = `
+          <div class="comment-meta">
+            <span class="comment-author">${newComment.author}</span>
+            <span class="comment-date">just now</span>
+          </div>
+          <div class="comment-content">
+            <p>${newComment.content}</p>
+          </div>
+        `;
+        
+        commentsList.appendChild(commentElement);
+        
+        // Update the comment count in the topic header
+        const commentCount = document.querySelector('.topic-meta');
+        if (commentCount) {
+          const topic = storedTopics[topicIndex];
+          commentCount.innerHTML = `
+            Posted by <a href="#user">${topic.author}</a> • ${getTimeAgo(new Date(topic.date))} • 
+            ${topic.views} view${topic.views !== 1 ? 's' : ''} • 
+            ${topic.comments} comment${topic.comments !== 1 ? 's' : ''}
+          `;
+        }
+        
+        // Update the comments heading
+        const commentsHeading = document.querySelector('.comments-section h2');
+        if (commentsHeading) {
+          const topic = storedTopics[topicIndex];
+          commentsHeading.textContent = `Comments (${topic.comments})`;
+        }
+      }
+      
+      // Function to render topics list
       function renderTopics(topics) {
         // Hide empty state if we have topics
         if (topics.length > 0) {
@@ -92,20 +304,21 @@ import Layout from '../layouts/Layout.astro';
           
           topicCard.innerHTML = `
             <div class="topic-info">
-              <h3><a href="#topic-${topic.id}">${topic.title}</a></h3>
+              <h3><a href="#" class="topic-title-link" data-topic-id="${topic.id}">${topic.title}</a></h3>
               <p class="topic-meta">
-                Posted by <a href="#user">${topic.author}</a> • ${timeAgo} • ${topic.comments} comments
+                Posted by <a href="#user">${topic.author}</a> • ${timeAgo} • ${topic.comments} comment${topic.comments !== 1 ? 's' : ''}
               </p>
               <p class="topic-excerpt">${topic.content.substring(0, 150)}${topic.content.length > 150 ? '...' : ''}</p>
+              <button class="view-topic-btn" data-topic-id="${topic.id}">Read More</button>
             </div>
             <div class="topic-stats">
               <div class="views">
                 <span class="count">${topic.views}</span>
-                <span class="label">views</span>
+                <span class="label">view${topic.views !== 1 ? 's' : ''}</span>
               </div>
               <div class="comments">
                 <span class="count">${topic.comments}</span>
-                <span class="label">replies</span>
+                <span class="label">repl${topic.comments !== 1 ? 'ies' : 'y'}</span>
               </div>
             </div>
           `;
@@ -152,8 +365,9 @@ import Layout from '../layouts/Layout.astro';
     </div>
   </section>
 
-  <section class="forum-topics">
-    <div class="container">
+  <div id="main-content">
+    <section class="forum-topics">
+      <div class="container">
       <div class="topics-header">
         <h2>Recent Topics</h2>
         <div class="topics-filter">
@@ -203,6 +417,7 @@ import Layout from '../layouts/Layout.astro';
       </form>
     </div>
   </section>
+  </div>
 </Layout>
 
 <style>
@@ -399,6 +614,136 @@ import Layout from '../layouts/Layout.astro';
 
     .forum-header h1 {
       font-size: 2rem;
+    }
+  }
+  /* Topic detail styles */
+  .topic-detail {
+    padding: 2rem 0;
+  }
+  
+  .topic-detail-header {
+    margin-bottom: 2rem;
+  }
+  
+  .back-to-topics {
+    display: inline-block;
+    margin-bottom: 1rem;
+    color: var(--color-primary);
+    font-weight: 500;
+  }
+  
+  .topic-detail-header h1 {
+    margin-bottom: 0.5rem;
+    font-size: 2rem;
+  }
+  
+  .topic-category {
+    display: inline-block;
+    background-color: var(--color-secondary);
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+  }
+  
+  .topic-content {
+    background-color: white;
+    padding: 1.5rem;
+    border-radius: var(--border-radius);
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  }
+  
+  .comments-section {
+    background-color: var(--color-background);
+    padding: 1.5rem;
+    border-radius: var(--border-radius);
+  }
+  
+  .comments-section h2 {
+    margin-bottom: 1.5rem;
+    font-size: 1.5rem;
+  }
+  
+  .comments-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  
+  .comment {
+    background-color: white;
+    padding: 1rem;
+    border-radius: var(--border-radius);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  }
+  
+  .comment-meta {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+  }
+  
+  .comment-author {
+    font-weight: 600;
+    color: var(--color-primary);
+  }
+  
+  .comment-date {
+    color: var(--color-text-light);
+  }
+  
+  .no-comments {
+    text-align: center;
+    padding: 2rem;
+    color: var(--color-text-light);
+    background-color: white;
+    border-radius: var(--border-radius);
+  }
+  
+  .comment-form {
+    background-color: white;
+    padding: 1.5rem;
+    border-radius: var(--border-radius);
+  }
+  
+  .comment-form h3 {
+    margin-bottom: 1rem;
+    font-size: 1.25rem;
+  }
+  
+  .view-topic-btn {
+    display: inline-block;
+    margin-top: 0.5rem;
+    padding: 0.3rem 0.75rem;
+    background-color: transparent;
+    border: 1px solid var(--color-primary);
+    color: var(--color-primary);
+    border-radius: var(--border-radius);
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  
+  .view-topic-btn:hover {
+    background-color: var(--color-primary);
+    color: white;
+  }
+  
+  @media (max-width: 768px) {
+    .topic-detail-header h1 {
+      font-size: 1.5rem;
+    }
+    
+    .comment-meta {
+      flex-direction: column;
+    }
+    
+    .comment-date {
+      margin-top: 0.25rem;
     }
   }
 </style>
